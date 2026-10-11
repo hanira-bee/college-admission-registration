@@ -1,5 +1,6 @@
 import datetime
 from os import system
+import json
 
 hari = datetime.datetime.now()
 
@@ -272,6 +273,43 @@ class Mahasiswa:
         input('Tekan enter untuk kembali ke halaman utama.')
 
 class PenerimaanMahasiswaBaru:
+    def save_data(self):
+        data_to_save = []
+        for mhs in self.calon_mahasiswa:
+            # Mengubah objek mahasiswa menjadi dictionary biasa agar bisa di-save ke JSON
+            data_to_save.append({
+                "nama": mhs.nama,
+                "email": mhs.email,
+                "jurusan": mhs.jurusan,
+                "biaya": mhs.biaya,
+                "kelas": mhs.kelas,
+                "program_studi": mhs.program_studi,
+                "jadwal": mhs.jadwal,
+                "hasil": mhs.hasil,
+                "bayar": mhs.bayar,
+                "lunas": mhs.lunas,
+                "hasil_pembayaran": mhs.hasil_pembayaran,
+                "terbayarkan": mhs.terbayarkan
+            })
+        
+        with open("database_mahasiswa.json", "w") as file:
+            json.dump(data_to_save, file, indent=4)
+    
+    def load_data(self):
+        try:
+            with open("database_mahasiswa.json", "r") as file:
+                data_loaded = json.load(file)
+                for item in data_loaded:
+                    # Membuat kembali objek Mahasiswa dari data JSON
+                    mhs = Mahasiswa(item["nama"], item["email"], item["jurusan"], item["biaya"], 
+                                    item["kelas"], item["program_studi"], "", "", 0, item["hasil"], 
+                                    item["bayar"], "", item["lunas"], item["hasil_pembayaran"], item["terbayarkan"])
+                    mhs.jadwal = item["jadwal"]
+                    self.calon_mahasiswa.append(mhs)
+        except FileNotFoundError:
+            # Jika file belum ada (pendaftaran pertama kali), abaikan saja
+            pass
+
     def __init__(self):
         self.calon_mahasiswa = []
 
@@ -378,6 +416,7 @@ class PenerimaanMahasiswaBaru:
             else:
                 input("Pilihan tidak valid. Silakan pilih opsi yang benar.")
 
+
 def judul():
     print('=====================================================')
     print('|             PENDAFTARAN MAHASISWA BARU            |')
@@ -409,5 +448,6 @@ def info():
 
 if __name__ == "__main__":
     program_penerimaan_mahasiswa = PenerimaanMahasiswaBaru()
+    program_penerimaan_mahasiswa.load_data()
     program_penerimaan_mahasiswa.jalankan_program()
 
